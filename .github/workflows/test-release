@@ -1,0 +1,55 @@
+name: TEST Zip and Release
+
+on:
+  workflow_dispatch:
+
+jobs:
+
+  zip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Archive Release1
+        uses: thedoctor0/zip-release@0.7.1
+        with:
+          type: 'zip'
+          directory: 'development_behavior_packs/NiaServer-Core-BP'
+          path: '.'
+          filename: NiaServer-Core-BP.zip
+      - name: Upload the zip file1
+        uses: actions/upload-artifact@v4
+        with:
+          name: NiaServer-Core-BP.zip
+          path: ./development_behavior_packs/NiaServer-Core-BP/NiaServer-Core-BP.zip
+      - name: Archive Release2
+        uses: thedoctor0/zip-release@0.7.1
+        with:
+          type: 'zip'
+          directory: 'development_resource_packs/NiaServer-Core-RP'
+          path: '.'
+          filename: NiaServer-Core-RP.zip
+      - name: Upload the zip file2
+        uses: actions/upload-artifact@v4
+        with:
+          name: NiaServer-Core-RP.zip
+          path: ./development_resource_packs/NiaServer-Core-RP/NiaServer-Core-RP.zip
+
+  release:
+    needs: [zip]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download the behavior_pack
+        uses: actions/download-artifact@v4
+        with:
+          name: NiaServer-Core-BP.zip
+      - name: Download the resource_pack
+        uses: actions/download-artifact@v4
+        with:
+          name: NiaServer-Core-RP.zip
+      - name: Create and upload release
+        uses: ncipollo/release-action@v1.12.0
+        with:
+          artifacts: "NiaServer-Core-BP.zip,NiaServer-Core-RP.zip"
+          bodyFile: "CHANGELOG.md"
+          generateReleaseNotes: false
+          token: ${{ secrets.GITHUB_TOKEN }}
